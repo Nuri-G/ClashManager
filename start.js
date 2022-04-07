@@ -1,33 +1,28 @@
-const fs = require("fs");
-const apiKey = fs.readFileSync("./token.txt").toString();
+const fs = require('fs');
+const axios = require('axios');
 
-const https = require('https');
-const options = {
-    hostname: 'api.clashroyale.com',
-    port: 443,
-    path: '/v1/players/#220P8YYGJ',
-    method: 'GET',
-    headers: {
-        Authorization: 'Bearer ' + apiKey,
-    }
-};
 
-let data = [];
+async function getPlayers(apiKey, clanTag) {
+    const config = { headers: {'Authorization': `Bearer ${apiKey}`}};
+    const url = `https://api.clashroyale.com/v1/clans/${clanTag}/members`;
+    const res = await axios.get(url, config)
+        .then(response => {
+            return response.data.items;
+        })
+        .catch(error => {
+            console.error("Error getting players from clan: " + error);
+        });
+    return res;
+}
 
-const req = https.request(options, res => {
-    console.log(`statusCode: ${res.statusCode}`);
-    let data = [];
 
-    res.on('data', d => {
-        data.push(d);
-    });
-    res.on('end', function() {
-        console.log(JSON.parse(data.join()));
-    })
-});
+// TODO - Dehardcode clan tag --- Will it come from ui or from a file?
+async function main() {
+    const apiKey = fs.readFileSync("./token.txt").toString();
+    let res = await getPlayers(apiKey, "%239YQQQ98");
+    console.log(res);
+}
 
-req.on('error', error => {
-    console.error(error);
-});
-
-req.end();
+if (require.main === module) {
+    main();
+}
