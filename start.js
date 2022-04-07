@@ -5,7 +5,7 @@ const axios = require('axios');
 async function getPlayers(apiKey, clanTag) {
     const config = { headers: {'Authorization': `Bearer ${apiKey}`}};
     const url = `https://api.clashroyale.com/v1/clans/${clanTag}/members`;
-    const res = await axios.get(url, config)
+    const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
         })
