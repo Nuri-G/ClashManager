@@ -55,12 +55,18 @@ async function rankPlayers(players) {
 
 
 // TODO - Dehardcode clan tag --- Will it come from ui or from a file?
+// Also need to handle players no longer in clan
 async function main() {
     const apiKey = fs.readFileSync("./token.txt").toString();
+
+    let ranksOverTime = new Map();
 
     getPlayers(apiKey, "%239YQQQ98")
         .then(players => {
             rankPlayers(players).then(finalRanks => {
+                for(let i = 0; i < finalRanks.length; i++) {
+                    let player = finalRanks[i]; //This not done!!
+                }
                 for(let player of finalRanks) {
                     console.log(player);
                 }
