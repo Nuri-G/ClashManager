@@ -29,7 +29,7 @@ async function getPlayer(tag) {
     return res;
 }
 
-async function rankPlayers(players) {
+function rankPlayers(players) {
 
     let playerScores = new Map();
     //Default sorted by trophies
@@ -161,7 +161,7 @@ module.exports = async function (context, req) {
     const clanTag = req.query.clanTag;
     try {
         let players = await getPlayers(clanTag);
-        let favCard = await clanfavouriteCard(players);
+        let favCard = await clanFavouriteCard(players);
         context.res = {
             body: {
                 ranks: rankPlayers(players),
