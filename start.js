@@ -7,7 +7,8 @@ async function getPlayers() {
     console.log(process.env.CLAN_TAG);
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
     const url = `https://api.clashroyale.com/v1/clans/%23${process.env.CLAN_TAG}/members`;
-    console.log(url);
+    //console.log(url);
+    //console.log(process.env.API_KEY);
     const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
@@ -20,10 +21,12 @@ async function getPlayers() {
 
 async function getPlayer(tag) {
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
+    tag = tag.replace("#", "%23");
     const url = `https://api.clashroyale.com/v1/players/${tag}`;
+
     const res = axios.get(url, config)
         .then(response => {
-            return response.data.items;
+            return response.data;
         })
         .catch(error => {
             console.error("Error getting players from player tag" + error);
@@ -86,56 +89,71 @@ async function rankPlayers(players) {
 //
 
 
-// TODO create a function that will go through each player in a clan and return the overall favorite card 
-// of the clan in case of ties highest trophy player gets their favorite card set as clan favorite
+// TODO create a function that will go through each player in a clan and return the overall favourite card 
+// of the clan in case of ties highest trophy player gets their favourite card set as clan favourite
 
-async function clanFavoriteCard(players){
+async function clanfavouriteCard(players){
     
     let favRank = [];
-    for(let i = 0; i < players.length; i++) {
-        let tag = players[i].tag;
-        let player = getPlayer(apiKey,tag);
-        favRank[i] = {playerTag: tag, favoriteCard: player.currentFavoriteCard.id, activityRank: i, favoriteCardName: player.currentFavoriteCard.name};
-    }
+    
+    {
+        let playerPromises = [];
+        let tag = 0;
+        for(let i = 0; i < players.length; i++) {
+            tag = players[i].tag;
+            playerPromises[i] = getPlayer(tag);
+        }
 
+        for(let i = 0; i < playerPromises.length; i++) {
+            let player = await playerPromises[i];
+            favRank[i] = {playerTag: tag, favouriteCard: player.currentFavouriteCard.id, activityRank: i, favouriteCardName: player.currentFavouriteCard.name};
+        }
+
+    }
 
 
     favRank = favRank.sort((a,b) => {
-        return a.favoriteCard - b.favoriteCard;
+        return a.favouriteCard - b.favouriteCard;
     });
 
 
-    let currentFavorite = 0;
+    //let currentfavourite = 0;
     let count = 0;
     let value = 0;
-    let topFavoriteCard = 0;
-    let topCount;
+    //let topfavouriteCard = 0;
+    let topCount = 0;
     let topValue = 0;
     let favName = "";
 
-    for(let j = 0; j < favRank.length; j++) {
-        if(favRank.favoriteCard[j] == currentFavorite){
+    for(let j = 0; j < players.length; j++) {
+        //console.log(`${favRank[j].favouriteCardName} -- ${j} -- ${favRank[j].activityRank}`);
+        if(j == 0){
+            currentfavourite = favRank[j].favouriteCard;
             count++;
-            value += favRank.activityRank;
+            value += favRank[j].activityRank;
+        } else if(favRank[j].favouriteCard == favRank[j - 1].favouriteCard){
+            count++;
+            value += favRank[j].activityRank;
         } else{
             if(count > topCount){
                 topCount = count;
-                topFavoriteCard = currentFavorite;
                 topValue = value;
-                favName = favRank.favName[j];
-            } else if(count = topCount){
-                if(value < topValue){
-                    topCount = count;
-                    topFavoriteCard = currentFavorite;
-                    topValue = value; 
-                    favName = favRank.favName[j];
-                }
-            }
-            count = 1;
-            value = favRank.activityRank;
-            currentFavorite = favRank.favoriteCard[j];
+                favName = favRank[j-1].favouriteCardName;
+                count = 1;
+            } else if(count == topCount && value < topValue){
+                topCount = count;
+                topValue = value;
+                favName = favRank[j-1].favouriteCardName;
+                count = 1;
+            } else{
+                count = 1;
+                value = favRank[j].activityRank;
+            }      
+            
+            
         }
     }
+
     return favName;
 }
 
@@ -153,7 +171,11 @@ async function main() {
                 for(let player of finalRanks) {
                     console.log(player);
                 }
-                console.log(`${clanFavoriteCard(players)} is the clans's favorite card.`)
+                clanfavouriteCard(players).then(result => {
+                    //console.log("////////")
+                    console.log(result);
+                });
+                // console.log(`${favCard} is the clans's favourite card.`)
                 
             });
             
