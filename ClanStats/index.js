@@ -1,20 +1,15 @@
+
 const axios = require('axios');
-const dotenv = require("dotenv")
-dotenv.config()
 
-
-async function getPlayers() {
-    console.log(process.env.CLAN_TAG);
+async function getPlayers(clanTag) {
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
-    const url = `https://api.clashroyale.com/v1/clans/%23${process.env.CLAN_TAG}/members`;
-    //console.log(url);
-    //console.log(process.env.API_KEY);
+    const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}/members`;
     const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
         })
         .catch(error => {
-            console.error("Error getting players from clan: " + error);
+            throw("Error getting players from clan: " + error);
         });
     return res;
 }
@@ -82,7 +77,6 @@ async function rankPlayers(players) {
     return finalRanks;
 }
 
-
 // trophy only ranking for possible cross reference and graphs?
 //let playerTrophyScores = new Map();
 //          if so TODO - return final rankings as either an array of both rankings or as an object containing both.
@@ -92,7 +86,7 @@ async function rankPlayers(players) {
 // TODO create a function that will go through each player in a clan and return the overall favourite card 
 // of the clan in case of ties highest trophy player gets their favourite card set as clan favourite
 
-async function clanfavouriteCard(players){
+async function clanFavouriteCard(players){
     
     let favRank = [];
     
@@ -162,30 +156,23 @@ async function clanfavouriteCard(players){
 // TODO use role in clan to recommend promotions / demotions;
 //          if so determine requirements for rank change
 
-
-// TODO - Dehardcode clan tag --- Will it come from ui or from a file?
-async function main() {
-    getPlayers()
-        .then(players => {
-            rankPlayers(players).then(finalRanks => {
-                for(let player of finalRanks) {
-                    console.log(player);
-                }
-                clanfavouriteCard(players).then(result => {
-                    //console.log("////////")
-                    console.log(result);
-                });
-                // console.log(`${favCard} is the clans's favourite card.`)
-                
-            });
-            
-        })
-        .catch(error => {
-            console.error(error);
-        });
-        
-}
-
-if (require.main === module) {
-    main();
+module.exports = async function (context, req) {
+    context.log('JavaScript HTTP trigger function processed a request.');
+    const clanTag = req.query.clanTag;
+    try {
+        let players = await getPlayers(clanTag);
+        let favCard = await clanfavouriteCard(players);
+        context.res = {
+            body: {
+                ranks: rankPlayers(players),
+                favouriteCard: favCard
+            }
+        };
+    } catch(e) {
+        console.error(e);
+        context.res = {
+            status: 500,
+            body: "Failed to get clan data."
+        }
+    }
 }
