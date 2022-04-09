@@ -1,22 +1,20 @@
+
 const axios = require('axios');
-const dotenv = require("dotenv")
-dotenv.config()
 
-
-async function getPlayers() {
+async function getPlayers(clanTag) {
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
-    const url = `https://api.clashroyale.com/v1/clans/%23${process.env.CLAN_TAG}/members`;
+    const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}/members`;
     const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
         })
         .catch(error => {
-            console.error("Error getting players from clan: " + error);
+            throw("Error getting players from clan: " + error);
         });
     return res;
 }
 
-async function rankPlayers(players) {
+function rankPlayers(players) {
     let playerScores = new Map();
     //Default sorted by trophies
     for(let i = 0; i < players.length; i++) {
@@ -54,22 +52,22 @@ async function rankPlayers(players) {
     return finalRanks;
 }
 
+module.exports = async function (context, req) {
+    context.log('JavaScript HTTP trigger function processed a request.');
 
-// TODO - Dehardcode clan tag --- Will it come from ui or from a file?
-async function main() {
-    getPlayers()
-        .then(players => {
-            rankPlayers(players).then(finalRanks => {
-                for(let player of finalRanks) {
-                    console.log(player);
-                }
-            });
-        })
-        .catch(error => {
-            console.error(error);
-        });
-}
-
-if (require.main === module) {
-    main();
+    const clanTag = req.query.clanTag;
+    try {
+        let players = await getPlayers(clanTag);
+        context.res = {
+            body: {
+                ranks: rankPlayers(players),
+            }
+        };
+    } catch(e) {
+        console.error(e);
+        context.res = {
+            status: 500,
+            body: "Failed to get clan data."
+        }
+    }
 }
