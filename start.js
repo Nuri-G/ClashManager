@@ -4,10 +4,8 @@ dotenv.config()
 
 
 async function getPlayers() {
-    console.log(process.env.CLAN_TAG);
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
     const url = `https://api.clashroyale.com/v1/clans/%23${process.env.CLAN_TAG}/members`;
-    console.log(url);
     const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
