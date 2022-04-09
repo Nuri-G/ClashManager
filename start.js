@@ -93,7 +93,7 @@ async function clanFavoriteCard(players){
     for(let i = 0; i < players.length; i++) {
         let tag = players[i].tag;
         let player = getPlayer(apiKey,tag);
-        favRank[i] = {playerTag: tag, favoriteCard: player.currentFavoriteCard.id};
+        favRank[i] = {playerTag: tag, favoriteCard: player.currentFavoriteCard.id, activityRank: i, favoriteCardName: player.currentFavoriteCard.name};
     }
 
 
@@ -101,24 +101,40 @@ async function clanFavoriteCard(players){
     favRank = favRank.sort((a,b) => {
         return a.favoriteCard - b.favoriteCard;
     });
+
+
     let currentFavorite = 0;
     let count = 0;
+    let value = 0;
     let topFavoriteCard = 0;
     let topCount;
+    let topValue = 0;
+    let favName = "";
+
     for(let j = 0; j < favRank.length; j++) {
         if(favRank.favoriteCard[j] == currentFavorite){
             count++;
+            value += favRank.activityRank;
         } else{
             if(count > topCount){
                 topCount = count;
                 topFavoriteCard = currentFavorite;
+                topValue = value;
+                favName = favRank.favName[j];
             } else if(count = topCount){
-                
+                if(value < topValue){
+                    topCount = count;
+                    topFavoriteCard = currentFavorite;
+                    topValue = value; 
+                    favName = favRank.favName[j];
+                }
             }
+            count = 1;
+            value = favRank.activityRank;
+            currentFavorite = favRank.favoriteCard[j];
         }
     }
-
-    return 0;
+    return favName;
 }
 
 
@@ -135,11 +151,15 @@ async function main() {
                 for(let player of finalRanks) {
                     console.log(player);
                 }
+                console.log(`${clanFavoriteCard(players)} is the clans's favorite card.`)
+                
             });
+            
         })
         .catch(error => {
             console.error(error);
         });
+        
 }
 
 if (require.main === module) {
