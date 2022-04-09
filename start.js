@@ -16,15 +16,15 @@ async function getPlayers(clanTag) {
     return res;
 }
 
-async function getPlayer(apiKey, tag) {
-    const config = { headers: {'Authorization': `Bearer ${apiKey}`}};
+async function getPlayer(tag) {
+    const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
     const url = `https://api.clashroyale.com/v1/players/${tag}`;
     const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
         })
         .catch(error => {
-            console.error("Error getting players from clan: " + error);
+            console.error("Error getting players from player tag" + error);
         });
     return res;
 }
@@ -93,15 +93,29 @@ async function clanFavoriteCard(players){
     for(let i = 0; i < players.length; i++) {
         let tag = players[i].tag;
         let player = getPlayer(apiKey,tag);
-        favRank[i] = player.currentFavoriteCard;
+        favRank[i] = {playerTag: tag, favoriteCard: player.currentFavoriteCard.id};
     }
 
+
+
     favRank = favRank.sort((a,b) => {
-        return a - b;
+        return a.favoriteCard - b.favoriteCard;
     });
-    
+    let currentFavorite = 0;
+    let count = 0;
+    let topFavoriteCard = 0;
+    let topCount;
     for(let j = 0; j < favRank.length; j++) {
-        if(favRank[i] == favRank[i - 1])
+        if(favRank.favoriteCard[j] == currentFavorite){
+            count++;
+        } else{
+            if(count > topCount){
+                topCount = count;
+                topFavoriteCard = currentFavorite;
+            } else if(count = topCount){
+                
+            }
+        }
     }
 
     return 0;
