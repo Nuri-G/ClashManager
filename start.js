@@ -3,9 +3,11 @@ const dotenv = require("dotenv")
 dotenv.config()
 
 
-async function getPlayers(clanTag) {
+async function getPlayers() {
+    console.log(process.env.CLAN_TAG);
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
-    const url = `https://api.clashroyale.com/v1/clans/${clanTag}/members`;
+    const url = `https://api.clashroyale.com/v1/clans/%23${process.env.CLAN_TAG}/members`;
+    console.log(url);
     const res = axios.get(url, config)
         .then(response => {
             return response.data.items;
@@ -145,7 +147,7 @@ async function clanFavoriteCard(players){
 
 // TODO - Dehardcode clan tag --- Will it come from ui or from a file?
 async function main() {
-    getPlayers("%239YQQQ98")
+    getPlayers()
         .then(players => {
             rankPlayers(players).then(finalRanks => {
                 for(let player of finalRanks) {
