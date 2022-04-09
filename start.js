@@ -1,9 +1,10 @@
-const fs = require('fs');
 const axios = require('axios');
+const dotenv = require("dotenv")
+dotenv.config()
 
 
-async function getPlayers(apiKey, clanTag) {
-    const config = { headers: {'Authorization': `Bearer ${apiKey}`}};
+async function getPlayers(clanTag) {
+    const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
     const url = `https://api.clashroyale.com/v1/clans/${clanTag}/members`;
     const res = axios.get(url, config)
         .then(response => {
@@ -56,9 +57,7 @@ async function rankPlayers(players) {
 
 // TODO - Dehardcode clan tag --- Will it come from ui or from a file?
 async function main() {
-    const apiKey = fs.readFileSync("./token.txt").toString();
-
-    getPlayers(apiKey, "%239YQQQ98")
+    getPlayers("%239YQQQ98")
         .then(players => {
             rankPlayers(players).then(finalRanks => {
                 for(let player of finalRanks) {
