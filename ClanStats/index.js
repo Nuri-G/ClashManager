@@ -35,9 +35,10 @@ function rankPlayers(players) {
     //Default sorted by trophies
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
-        playerScores.set(player.tag, {name: player.name, score: i});
-    }
 
+        playerScores.set(player.tag, {name: player.name, role: player.role, score: i, trophyScore: i, donationsSentScore: 0, donationsReceivedScore: 0, lastSeenScore: 0});
+    }
+    players
     //Sorting by donations
     players = players.sort((a, b) => {
         return b.donations - a.donations;
@@ -46,6 +47,7 @@ function rankPlayers(players) {
         let player = players[i];
         // console.log(player.donations);
         playerScores.get(player.tag).score += i;
+        playerScores.get(player.tag).donationsSentScore += i;
     }
 
     //Sorting by lastSeen
@@ -59,15 +61,23 @@ function rankPlayers(players) {
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
         playerScores.get(player.tag).score += i;
+        playerScores.get(player.tag).lastSeenScore += i;
     }
     //Sorting by donations recieved
     players = players.sort((a, b) => {
-        return a.donationsRecieved - b.donationsRecieved;
+        if(a.donationsReceived < b.donationsReceived){
+            return 1;
+        } else{
+            return -1;
+        };
         
     });
     for(let i = 0; i < players.length; i++) {
+
         let player = players[i];
+        
         playerScores.get(player.tag).score += i;
+        playerScores.get(player.tag).donationsReceivedScore += i;
     }
 
     //Sorting final rankings
@@ -77,19 +87,10 @@ function rankPlayers(players) {
     return finalRanks;
 }
 
-// trophy only ranking for possible cross reference and graphs?
-//let playerTrophyScores = new Map();
-//          if so TODO - return final rankings as either an array of both rankings or as an object containing both.
-//
-
-
-// TODO create a function that will go through each player in a clan and return the overall favourite card 
-// of the clan in case of ties highest trophy player gets their favourite card set as clan favourite
-
 async function clanFavouriteCard(players){
     
     let favRank = [];
-    
+    let favImage = "";
     {
         let playerPromises = [];
         let tag = 0;
@@ -100,7 +101,7 @@ async function clanFavouriteCard(players){
 
         for(let i = 0; i < playerPromises.length; i++) {
             let player = await playerPromises[i];
-            favRank[i] = {playerTag: tag, favouriteCard: player.currentFavouriteCard.id, activityRank: i, favouriteCardName: player.currentFavouriteCard.name};
+            favRank[i] = {playerTag: tag, favouriteCard: player.currentFavouriteCard.id, activityRank: i, favouriteCardName: player.currentFavouriteCard.name, picture: player.currentFavouriteCard.iconUrls.medium};
         }
 
     }
@@ -133,11 +134,13 @@ async function clanFavouriteCard(players){
                 topCount = count;
                 topValue = value;
                 favName = favRank[j-1].favouriteCardName;
+                favImage = favRank[j-1].picture;
                 count = 1;
             } else if(count == topCount && value < topValue){
                 topCount = count;
                 topValue = value;
                 favName = favRank[j-1].favouriteCardName;
+                favImage = favRank[j-1].picture;
                 count = 1;
             } else{
                 count = 1;
@@ -147,8 +150,7 @@ async function clanFavouriteCard(players){
             
         }
     }
-
-    return favName;
+    return {name: favName, imageUri: favImage};
 }
 
 
