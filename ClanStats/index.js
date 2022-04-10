@@ -36,7 +36,7 @@ function rankPlayers(players) {
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
 
-        playerScores.set(player.tag, {name: player.name, role: player.role, overallScore: i, trophyScore: i, donationsSentScore: 0, donationsReceivedScore: 0, lastSeenScore: 0});
+        playerScores.set(player.tag, {name: player.name, role: player.role, score: i, trophyScore: i, donationsSentScore: 0, donationsReceivedScore: 0, lastSeenScore: 0});
     }
     players
     //Sorting by donations
@@ -46,7 +46,7 @@ function rankPlayers(players) {
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
         // console.log(player.donations);
-        playerScores.get(player.tag).overallScore += i;
+        playerScores.get(player.tag).score += i;
         playerScores.get(player.tag).donationsSentScore += i;
     }
 
@@ -60,7 +60,7 @@ function rankPlayers(players) {
     });
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
-        playerScores.get(player.tag).overallScore += i;
+        playerScores.get(player.tag).score += i;
         playerScores.get(player.tag).lastSeenScore += i;
     }
     //Sorting by donations recieved
@@ -76,13 +76,13 @@ function rankPlayers(players) {
 
         let player = players[i];
         
-        playerScores.get(player.tag).overallScore += i;
+        playerScores.get(player.tag).score += i;
         playerScores.get(player.tag).donationsReceivedScore += i;
     }
 
     //Sorting final rankings
     let finalRanks = [...playerScores.entries()].sort((a, b) => {
-        return a[1].overallScore - b[1].overallScore;
+        return a[1].score - b[1].score;
     });
     return finalRanks;
 }
