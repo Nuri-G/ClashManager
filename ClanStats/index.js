@@ -1,15 +1,16 @@
 
 const axios = require('axios');
 
-async function getPlayers(clanTag) {
+async function getClan(clanTag) {
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
-    const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}/members`;
+    const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}`;
     const res = axios.get(url, config)
         .then(response => {
-            return response.data.items;
+            return response.data;
         })
         .catch(error => {
-            throw("Error getting players from clan: " + error);
+            console.error("Error getting players from clan: " + clanTag);
+            throw error;
         });
     return res;
 }
@@ -24,19 +25,19 @@ async function getPlayer(tag) {
             return response.data;
         })
         .catch(error => {
-            console.error("Error getting players from player tag" + error);
+            console.error("Error getting players from player tag: " + tag);
+            throw error;
         });
     return res;
 }
 
-function rankPlayers(players) {
-
-    let playerScores = new Map();
+function scorePlayers(players) {
+    let playerScores = {};
     //Default sorted by trophies
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
 
-        playerScores.set(player.tag, {name: player.name, role: player.role, score: i, trophyScore: i, donationsSentScore: 0, donationsReceivedScore: 0, lastSeenScore: 0});
+        playerScores[player.tag] = {name: player.name, role: player.role, scores: {trophies: i, donationsSent: 0, donationsReceived: 0, lastSeen: 0}};
     }
     players
     //Sorting by donations
@@ -45,9 +46,7 @@ function rankPlayers(players) {
     });
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
-        // console.log(player.donations);
-        playerScores.get(player.tag).score += i;
-        playerScores.get(player.tag).donationsSentScore += i;
+        playerScores[player.tag].scores.donationsSent += i;
     }
 
     //Sorting by lastSeen
@@ -60,8 +59,7 @@ function rankPlayers(players) {
     });
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
-        playerScores.get(player.tag).score += i;
-        playerScores.get(player.tag).lastSeenScore += i;
+        playerScores[player.tag].scores.lastSeen += i;
     }
     //Sorting by donations recieved
     players = players.sort((a, b) => {
@@ -76,15 +74,9 @@ function rankPlayers(players) {
 
         let player = players[i];
         
-        playerScores.get(player.tag).score += i;
-        playerScores.get(player.tag).donationsReceivedScore += i;
+        playerScores[player.tag].scores.donationsReceived += i;
     }
-
-    //Sorting final rankings
-    let finalRanks = [...playerScores.entries()].sort((a, b) => {
-        return a[1].score - b[1].score;
-    });
-    return finalRanks;
+    return playerScores;
 }
 
 async function clanFavouriteCard(players){
@@ -162,19 +154,22 @@ module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
     const clanTag = req.query.clanTag;
     try {
-        let players = await getPlayers(clanTag);
+        let clan = await getClan(clanTag);
+        let players = clan.memberList;
         let favCard = await clanFavouriteCard(players);
         context.res = {
             body: {
-                ranks: rankPlayers(players),
-                favouriteCard: favCard
+                name: clan.name,
+                trophies: clan.clanWarTrophies,
+                score: clan.clanScore,
+                favouriteCard: favCard,
+                players: scorePlayers(players)
             }
         };
     } catch(e) {
-        console.error(e);
         context.res = {
-            status: 500,
-            body: "Failed to get clan data."
+            status: e.response.status,
+            body: e.message
         }
     }
 }
