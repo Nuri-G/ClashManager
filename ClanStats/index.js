@@ -113,7 +113,6 @@ async function clanFavouriteCard(players){
     let favName = "";
 
     for(let j = 0; j < players.length; j++) {
-        //console.log(`${favRank[j].favouriteCardName} -- ${j} -- ${favRank[j].activityRank}`);
         if(j == 0){
             currentfavourite = favRank[j].favouriteCard;
             count++;
