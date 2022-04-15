@@ -163,6 +163,7 @@ module.exports = async function (context, req) {
                 trophies: clan.clanWarTrophies,
                 score: clan.clanScore,
                 favouriteCard: favCard,
+                members: clan.members,
                 players: scorePlayers(players)
             }
         };
