@@ -1,11 +1,17 @@
-
+const df = require("durable-functions");
 const axios = require('axios');
 
-async function getClan(clanTag) {
+async function getClan(context, clanTag) {
+    //Getting current data from api
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
     const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}`;
     const res = axios.get(url, config)
         .then(response => {
+            //Adding clan to tracking
+            const client = df.getClient(context);
+            const entityId = new df.EntityId("AllClans", "default");
+            client.signalEntity(entityId, "add", clanTag); // might need await?
+
             return response.data;
         })
         .catch(error => {
@@ -13,6 +19,13 @@ async function getClan(clanTag) {
             throw error;
         });
     return res;
+}
+
+async function getHistory(context, tag) {
+    const client = df.getClient(context);
+    const entityId = new df.EntityId("clanhistory", tag);
+    const stateResponse = await client.readEntityState(entityId);
+    return stateResponse.entityState;
 }
 
 async function getPlayer(tag) {
@@ -153,20 +166,23 @@ module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
     const clanTag = req.query.clanTag;
     try {
-        let clan = await getClan(clanTag);
+        let clan = await getClan(context, clanTag);
         let players = clan.memberList;
-        let favCard = await clanFavouriteCard(players);
+        // let favCard = await clanFavouriteCard(players);
+        let history = await getHistory(context, clanTag);
         context.res = {
             body: {
                 name: clan.name,
                 trophies: clan.clanWarTrophies,
                 score: clan.clanScore,
-                favouriteCard: favCard,
+                // favouriteCard: favCard,
                 members: clan.members,
-                players: scorePlayers(players)
+                players: scorePlayers(players),
+                history: history
             }
         };
     } catch(e) {
+        console.error(e);
         context.res = {
             status: e.response.status,
             body: e.message

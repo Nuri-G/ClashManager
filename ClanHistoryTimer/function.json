@@ -1,0 +1,15 @@
+{
+  "bindings": [
+    {
+      "name": "myTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "*/15 * * * * *"
+    },
+    {
+      "name": "caller",
+      "type": "durableClient",
+      "direction": "in"
+  }
+  ]
+}
