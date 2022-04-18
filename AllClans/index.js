@@ -12,12 +12,7 @@ module.exports = df.entity(function(context) {
         case "update":
             clanTags.forEach(async tag => {
                 const entityId = new df.EntityId("clanhistory", tag);
-                try {
-                    await context.df.signalEntity(entityId, "update");
-                } catch(e) {
-                    context.error(e);
-                }
-                
+                context.df.signalEntity(entityId, "update");
             });
             
             break;
