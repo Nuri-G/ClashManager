@@ -44,15 +44,43 @@ async function getPlayer(tag) {
     return res;
 }
 
-function scorePlayers(players) {
+
+async function getCurrentRiverRace(clanTag) {
+    const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
+    const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}/currentriverrace`;
+
+    const res = axios.get(url, config)
+        .then(response => {
+            return response.data;
+        })
+        .catch(error => {
+            console.error("Error getting current river race" + clanTag);
+            throw error;
+        });
+    return res;
+}
+
+function scorePlayers(players,riverRacePlayers) {
     let playerScores = {};
     //Default sorted by trophies
     for(let i = 0; i < players.length; i++) {
         let player = players[i];
 
-        playerScores[player.tag] = {name: player.name, role: player.role, scores: {trophies: i, donationsSent: 0, donationsReceived: 0, lastSeen: 0}};
+        playerScores[player.tag] = {name: player.name, role: player.role, scores: {trophies: i, donationsSent: 0, donationsReceived: 0, lastSeen: 0, war: 0}};
     }
-    players
+
+
+    
+    riverRacePlayers = riverRacePlayers.sort((a, b) => {
+        return b.fame - a.fame;
+    });
+    for(let i = 0; i < riverRacePlayers.length; i++) {
+        let player = riverRacePlayers[i];
+        if(playerScores[player.tag]) {
+            playerScores[player.tag].scores.war += i;
+        }
+    }
+    
     //Sorting by donations
     players = players.sort((a, b) => {
         return b.donations - a.donations;
@@ -74,6 +102,8 @@ function scorePlayers(players) {
         let player = players[i];
         playerScores[player.tag].scores.lastSeen += i;
     }
+    //Sorting by War
+
     //Sorting by donations recieved
     players = players.sort((a, b) => {
         if(a.donationsReceived < b.donationsReceived){
@@ -170,6 +200,8 @@ module.exports = async function (context, req) {
         let players = clan.memberList;
         // let favCard = await clanFavouriteCard(players);
         let history = await getHistory(context, clanTag);
+        let currentRiverRace = await getCurrentRiverRace(clanTag);
+        let riverRacePlayers = currentRiverRace.clan.participants;
         context.res = {
             body: {
                 name: clan.name,
@@ -177,7 +209,7 @@ module.exports = async function (context, req) {
                 score: clan.clanScore,
                 // favouriteCard: favCard,
                 members: clan.members,
-                players: scorePlayers(players),
+                players: scorePlayers(players,riverRacePlayers),
                 history: history
             }
         };
