@@ -47,7 +47,7 @@ async function getPlayer(tag) {
 
 async function getCurrentRiverRace(clanTag) {
     const config = { headers: {'Authorization': `Bearer ${process.env.API_KEY}`}};
-    const url = `https://api.clashroyale.com/v1/clans/${clanTag}/currentriverrace`;
+    const url = `https://api.clashroyale.com/v1/clans/%23${clanTag}/currentriverrace`;
 
     const res = axios.get(url, config)
         .then(response => {
@@ -60,7 +60,7 @@ async function getCurrentRiverRace(clanTag) {
     return res;
 }
 
-function scorePlayers(players,clanTag) {
+function scorePlayers(players,riverRacePlayers) {
     let playerScores = {};
     //Default sorted by trophies
     for(let i = 0; i < players.length; i++) {
@@ -69,14 +69,16 @@ function scorePlayers(players,clanTag) {
         playerScores[player.tag] = {name: player.name, role: player.role, scores: {trophies: i, donationsSent: 0, donationsReceived: 0, lastSeen: 0, war: 0}};
     }
 
-    let currentRiverRace = await getCurrentRiverRace(clanTag);
-    let riverRacePlayers = currentRiverRace.clan.participants;
+
+    
     riverRacePlayers = riverRacePlayers.sort((a, b) => {
-        return a.fame - b.fame;
+        return b.fame - a.fame;
     });
     for(let i = 0; i < riverRacePlayers.length; i++) {
         let player = riverRacePlayers[i];
-        playerScores[player.tag].scores.war += i;
+        if(playerScores[player.tag]) {
+            playerScores[player.tag].scores.war += i;
+        }
     }
     
     //Sorting by donations
@@ -198,6 +200,8 @@ module.exports = async function (context, req) {
         let players = clan.memberList;
         // let favCard = await clanFavouriteCard(players);
         let history = await getHistory(context, clanTag);
+        let currentRiverRace = await getCurrentRiverRace(clanTag);
+        let riverRacePlayers = currentRiverRace.clan.participants;
         context.res = {
             body: {
                 name: clan.name,
@@ -205,7 +209,7 @@ module.exports = async function (context, req) {
                 score: clan.clanScore,
                 // favouriteCard: favCard,
                 members: clan.members,
-                players: scorePlayers(players,clanTag),
+                players: scorePlayers(players,riverRacePlayers),
                 history: history
             }
         };
