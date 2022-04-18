@@ -168,14 +168,14 @@ module.exports = async function (context, req) {
     try {
         let clan = await getClan(context, clanTag);
         let players = clan.memberList;
-        // let favCard = await clanFavouriteCard(players);
+        let favCard = await clanFavouriteCard(players);
         let history = await getHistory(context, clanTag);
         context.res = {
             body: {
                 name: clan.name,
                 trophies: clan.clanWarTrophies,
                 score: clan.clanScore,
-                // favouriteCard: favCard,
+                favouriteCard: favCard,
                 members: clan.members,
                 players: scorePlayers(players),
                 history: history
