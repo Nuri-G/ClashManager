@@ -16,7 +16,7 @@ A set of Azure Functions to collect clan data from the Clash Royale API
 - Azure Durable Functions
     - Used to keep track of any data that needs to be stored
         - Regular Azure Functions are stateless so they do not work for this.
-- NodeJS
+- JavaScript with NodeJS
     - Language used for both Azure Functions and UI
     - Packages
         - Axios - Used for HTTPS requests, much easier than the built-in modules.
