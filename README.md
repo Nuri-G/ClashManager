@@ -9,7 +9,7 @@ A set of Azure Functions to collect clan data from the Clash Royale API
 - Install the following extensions:
     - Azure Functions
     - Azurite
-- Get an API key from [here](https://developer.clashroyale.com/);
+- Get an API key from [here](https://developer.clashroyale.com/)
 - Clone this repository
 - Make a file called local.settings.json in the root of the project with the following information:
 ```
