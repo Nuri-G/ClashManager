@@ -30,7 +30,7 @@ A set of Azure Functions to collect clan data from the Clash Royale API
 - If prompted to use storage emulator, press OK
 
 ## Using ClashManager
-### With HTTP rquests:
+### With HTTP requests:
  If running locally, simply make an HTTP get request to `http://localhost:7071/api/ClanStats?clanTag=YOURCLANTAG`. ClashManager will return the most recent data for the clan and start tracking its history every 15 minutes. A clan tag you can test with is `9YQQQ98`.
 ### With a UI:
 See [clash-manager-ui](https://github.com/Nuri-G/clash-manager-ui).
