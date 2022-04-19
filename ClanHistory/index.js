@@ -25,7 +25,7 @@ module.exports = df.entity(async function(context) {
                 score: clan.clanScore,
                 members: clan.members
             });
-            while(history.length > 2520) {
+            while(history.length > 5040) {
                 history.shift();
             }
             context.df.setState(history);
